@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace JavaDocExport
 {
@@ -78,48 +79,55 @@ namespace JavaDocExport
                                     //MessageBox.Show(newline);
 
                                     if (readPos == 0 && newline.IndexOf("@") == -1 && newline != "") {
-                                        htmlOutput += "<b>Short Desc</b> " + newline + "<br /><br />";
+                                        htmlOutput += "<p>" + newline + "</p>";
                                     }
                                     else if (readPos > 0 && newline.IndexOf("@") == -1 && newline != "") {
                                         if (longDesc == 0) {
-                                            htmlOutput += "<b>Long Desc</b> " + newline + "<br /><br />";
+                                            htmlOutput += "<p>" + newline + "</p>";
                                             longDesc++;
                                         }
                                         else {
                                             //Trim off the double line break of the HTML output since we are still adding to the long description
-                                            htmlOutput = htmlOutput.Substring(0, htmlOutput.Length-12) + " " + newline + "<br /><br />";
+                                            htmlOutput = htmlOutput.Substring(0, htmlOutput.Length-12) + " " + newline;
                                         }
                                     }
                                     else if (newline.IndexOf("@") != -1 && newline != "") {
+                                        htmlOutput += "<div class='api-item-params'>";
                                         string tag = "";
                                         string[] tempData, tempTag;
 
                                         longDesc = 0; //Reset the long description
 
                                         newline = trimTabs(newline); //Make sure there is only 1 tab between data
-                                        tempData = newline.Split('\t');
+                                        tempData = newline.Split(' ');
                                         tempTag = tempData[0].Split(new string[] {" "}, 2, StringSplitOptions.None); //Split by space only once to separate the parameter from the data
-                                        tag = tempTag[0];
-  
+
+                                        tag = tempData[0];
+                                        Debug.WriteLine(tag);
                                         switch (tag.ToUpper())  {
                                             case "@PARAM":
+                                                
                                                 if (tempData.Length >= 2) {
-                                                    htmlOutput += "<b>Parameter</b> " + tempTag[1] + " - Desc: " + tempData[1] + "<br /><br />";
+                                                    string desc = string.Join(" ", tempData.Skip(3));
+                                                    htmlOutput += "<strong>Param</strong> " + tempData[2] + " - " + tempData[1] + " : " + desc + "<br />";
                                                 }
                                                 break;
                                             case "@AUTHOR":
                                                 if (tempData.Length >= 1) {
-                                                    htmlOutput += "<b>Author</b> " + tempTag[1] + "<br /><br />";
+                                                    string desc = string.Join(" ", tempData.Skip(1));
+                                                    htmlOutput += "<b>Author</b> " + desc + "<br /><br />";
                                                 }
                                                 break;
                                             case "@RETURN":
                                                 if (tempData.Length >= 1) {
-                                                    htmlOutput += "<b>Returns</b> " + tempTag[1] + "<br /><br />";
+                                                    string desc = string.Join(" ", tempData.Skip(1));
+                                                    htmlOutput += "<b>Returns</b> " + desc + "<br /><br />";
                                                 }
                                                 break;
                                             default:
                                                 break;
                                         }
+                                        htmlOutput += "</div>";
                                     } //End @ check
                                 }
                                 readPos++; //
@@ -129,7 +137,7 @@ namespace JavaDocExport
                             //We broke out of the loop because we found the terminator, grab the function name
                             newline = sr.ReadLine(); //Read in the function name
                             newline = newline.Replace("{", "");
-                            htmlOutput = "<h2>" + newline + "</h2>" + htmlOutput; //Prepend the output with the function name
+                            htmlOutput = "<div class='api-item'><h2>" + newline + "</h2>" + htmlOutput + "</div>"; //Prepend the output with the function name
 
                             //MessageBox.Show("WRITE: \n" + htmlOutput);
 
